@@ -31,7 +31,9 @@ func Convert2intArray(stringArray []string) []int {
 }
 func sum_squares(inputArray []int) int{
 	l:=len(inputArray)
-	if l==1{
+	if l==0{
+		return 0
+	} else if l==1{
 
 
 		return inputArray[0]*inputArray[0]
@@ -45,7 +47,7 @@ func sum_squares(inputArray []int) int{
 
 }
 func sum_squares_concurrent(inputArray []int,input_wg *sync.WaitGroup,input_channel chan int) {
-	defer (*input_wg).Done()
+//	defer (*input_wg).Done()
 	l:=len(inputArray)
 	//	fmt.Println(l)
 	if l==0{
@@ -85,18 +87,19 @@ func checkError(err error) {
 		panic(err)
 	}
 }
-func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,done chan bool,counter int) {
-if counter==0{
-	fmt.Println("recursion")
-	done <- true
-return
-}
+func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,counter int) {
+	if counter<=0{
+		fmt.Println("recursion")
+		return
+	} else{
+
+	defer (*wg).Done()
+	}
 	msg1 := <-*channel1
 
-go		consume(channel1,result_channel,wg,done,counter-1)
-		result_channel <- sum_squares(msg1)
-		fmt.Println(msg1)
-		(*wg).Done()
+	go		consume(channel1,result_channel,wg,counter-1)
+	result_channel <- sum_squares(msg1)
+	//		fmt.Println(msg1)
 }
 func produce(channel_name chan []int){
 
@@ -111,28 +114,50 @@ func produce(channel_name chan []int){
 	close(channel_name)
 }
 func main(){
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
+	arrays:=10000
+	//---------------------------sequential part
+	all:= [][]int{}
+	res:= []int{}
+	for i:=1;i<=arrays;i++{
+		rand_num:=r1.Intn(100)+10000
+		arr:=makeRange(rand_num,rand_num+10000)
+		all=append(all,arr)
+	}
+	Start:=time.Now()
+	for i:=0;i<arrays;i++{
+		res=append(res,sum_squares(all[i]))
+	}
+	fmt.Println("seq res ",time.Since(Start))
+
+
+
+
+	//concurrent --------------------------------------------------------
 	wg:=sync.WaitGroup{}
-	arrays:=500
+	wg2:=sync.WaitGroup{}
 	wg.Add(arrays)
 	ch:=make(chan int,arrays)
-	done:=make(chan bool)
-	ch_arrays:=make(chan []int)
+	ch_arrays:=make(chan []int,arrays)
+		wg2.Add(1)
 	go func(){
-		for i:=1;i<=arrays;i++{
-			rand_num:=rand.Intn(100)
-			arr:=makeRange(1,rand_num)
-			ch_arrays <- arr
-
+		for i:=0;i<arrays;i++{
+			ch_arrays <-all[i] 
 		}
+		wg2.Done()
 	}()
-	time.Sleep(10 * time.Millisecond)
-	go consume(&ch_arrays,ch,&wg,done,arrays) 
-	<- done
-		close(ch_arrays)
+	wg2.Wait()
+	start:=time.Now()
+	go consume(&ch_arrays,ch,&wg,arrays) 
+	wg.Wait()
+	fmt.Println("time og con ",time.Since(start))
+	close(ch_arrays)
 	close(ch)
-		fmt.Println("final results----------------------")
-	for sdfs:= range ch{
-		fmt.Println("final",sdfs)
-	}
+	fmt.Println("final results----------------------")
+	//	for sdfs:= range ch{
+	//		fmt.Println("final",sdfs)
+	//	}
 	fmt.Println("%v",len(ch))	
 }
