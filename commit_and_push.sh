@@ -5,6 +5,8 @@ then
 else
 	git add .
 	git commit -m $1
+	git config user.name "m.dowlatabadi.ce@gmail.com"
+
 	filename='../gittok.txt'
 	pass=""
 	while read line; do
@@ -12,6 +14,6 @@ else
 		pass=$line
 		n=$((n+1))
 	done < $filename
-	git push https://m.dowlatabadi.ce@gmail.com:$pass@github.com/Dowlatabadi/Go-Micros.git --all 
+	git push origin master 
 fi
 
