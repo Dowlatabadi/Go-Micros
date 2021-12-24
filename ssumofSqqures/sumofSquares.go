@@ -92,26 +92,12 @@ func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,c
 		fmt.Println("recursion")
 		return
 	} else{
-
 	defer (*wg).Done()
 	}
 	msg1 := <-*channel1
-
-	go		consume(channel1,result_channel,wg,counter-1)
+	go consume(channel1,result_channel,wg,counter-1)
 	result_channel <- sum_squares(msg1)
 	//		fmt.Println(msg1)
-}
-func produce(channel_name chan []int){
-
-	for i:=1;i<2000000;i++{
-		x :=[]int{}
-		for y:=0;y<=i;y++{
-			x=append(x,y)
-		}
-		channel_name <- x 
-		fmt.Printf("is in ch %v \n",i)
-	}
-	close(channel_name)
 }
 func main(){
 	s1 := rand.NewSource(time.Now().UnixNano())
