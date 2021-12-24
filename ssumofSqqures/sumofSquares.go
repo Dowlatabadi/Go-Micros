@@ -8,6 +8,7 @@ import(
 	"sync"
 	"math/rand"
 	"time"
+	"os"
 )
 func makeRange(min, max int) []int {
 	a := make([]int, max-min+1)
@@ -15,6 +16,15 @@ func makeRange(min, max int) []int {
 		a[i] = min + i
 	}
 	return a
+}
+func Read_Array_Block(reader *bufio.Reader,block_num int) []string{
+	if (block_num==0) {
+		return []string{}
+	}
+	_= readLine(reader)
+	firstMultipleInput := strings.Split(strings.TrimSpace(readLine(reader)), " ")
+	res:=Read_Array_Block(reader,block_num-1)
+	return append(firstMultipleInput,res...)
 }
 func Convert2intArray(stringArray []string) []int {
 	result:=[]int{}
@@ -47,7 +57,7 @@ func sum_squares(inputArray []int) int{
 
 }
 func sum_squares_concurrent(inputArray []int,input_wg *sync.WaitGroup,input_channel chan int) {
-//	defer (*input_wg).Done()
+	//	defer (*input_wg).Done()
 	l:=len(inputArray)
 	//	fmt.Println(l)
 	if l==0{
@@ -92,12 +102,30 @@ func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,c
 		fmt.Println("recursion")
 		return
 	} else{
-	defer (*wg).Done()
+		defer (*wg).Done()
 	}
 	msg1 := <-*channel1
 	go consume(channel1,result_channel,wg,counter-1)
 	result_channel <- sum_squares(msg1)
 	//		fmt.Println(msg1)
+}
+func read_input(){
+	reader := bufio.NewReaderSize(os.Stdin, 16 * 1024 * 1024)
+
+	stdout, err := os.Create(os.Getenv("OUTPUT_PATH"))
+	checkError(err)
+
+	defer stdout.Close()
+
+	writer := bufio.NewWriterSize(stdout, 16 * 1024 * 1024)
+
+	length , _:= strconv.Atoi(readLine(reader))
+
+
+	Read_Array_Block(reader,length)
+
+
+	writer.Flush()
 }
 func main(){
 	s1 := rand.NewSource(time.Now().UnixNano())
@@ -127,7 +155,7 @@ func main(){
 	wg.Add(arrays)
 	ch:=make(chan int,arrays)
 	ch_arrays:=make(chan []int,arrays)
-		wg2.Add(1)
+	wg2.Add(1)
 	go func(){
 		for i:=0;i<arrays;i++{
 			ch_arrays <-all[i] 
