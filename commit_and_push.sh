@@ -13,12 +13,6 @@ else
 		pass=$line
 		n=$((n+1))
 	done < $filename
-	sleep 1
-	echo   "m.dowlatabadi.ce@gmail.com"
-	read -n1 KEY
-	sleep 1
-	echo $pass
-	read -n1 KEY
-	echo "Press enter if commit is ready to be pushed!"
+	git push https://m.dowlatabadi.ce@gmail.com:$pass@myrepository.biz/file.git --all 
 fi
 
