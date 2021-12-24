@@ -5,7 +5,6 @@ then
 else
 	git add .
 	git commit -m $1
-	git config user.name "m.dowlatabadi.ce@gmail.com"
 
 	filename='../gittok.txt'
 	pass=""
@@ -16,6 +15,6 @@ else
 	done < $filename
 	echo "m.dowlatabadi.ce@gamil.com"
 	echo $pass
-	git push origin master 
+	git push  https://$pass@github.com/Dowlatabadi/Go-Micros.git
 fi
 
