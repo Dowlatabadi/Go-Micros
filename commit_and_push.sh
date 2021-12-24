@@ -14,6 +14,8 @@ else
 		pass=$line
 		n=$((n+1))
 	done < $filename
+	echo "m.dowlatabadi.ce@gamil.com"
+	echo $pass
 	git push origin master 
 fi
 
