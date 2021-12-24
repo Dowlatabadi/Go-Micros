@@ -12,6 +12,6 @@ else
 		pass=$line
 		n=$((n+1))
 	done < $filename
-	git push https://m.dowlatabadi.ce@gmail.com:$pass@/Dowlatabadi/Go-Micros.git --all 
+	git push https://m.dowlatabadi.ce@gmail.com:$pass@github.com/Dowlatabadi/Go-Micros.git --all 
 fi
 
