@@ -6,9 +6,9 @@ import(
 	"strings"
 	"io"
 	"sync"
-	//	"time"
 	"os"
 )
+//reads lines on array items and ignores negative ones and converts to int array recursively
 func Read_Array_Elements(reader *bufio.Reader,Elements int) []int{
 	if Elements==0{
 		return []int{}
@@ -18,6 +18,7 @@ func Read_Array_Elements(reader *bufio.Reader,Elements int) []int{
 	length:=len(string_array)
 	return append(Read_Array_Elements(reader,Elements-length),line_array...)
 }
+//reads an array length and next the actual array items
 func Read_Array_Block(reader *bufio.Reader,block_num int,channel chan []int) {
 	if (block_num==0) {
 		return 
@@ -26,10 +27,10 @@ func Read_Array_Block(reader *bufio.Reader,block_num int,channel chan []int) {
 	checkError(err)
 	res:= Read_Array_Elements(reader,length)
 	channel	<- res
-	//	fmt.Println("received : ",res)
 	Read_Array_Block(reader,block_num-1,channel)
 
 }
+//converts an array of strings to an int array recursively
 func Convert2intArray(stringArray []string) []int {
 	result:=[]int{}
 	if len(stringArray)==0{
@@ -42,28 +43,26 @@ func Convert2intArray(stringArray []string) []int {
 
 			tTemp = []int {element}
 		}
-		//		fmt.Println(tTemp)
 		second_part:=Convert2intArray(stringArray[1:])
 		return append(tTemp,second_part...)
 	}
 }
+//calculate sum of squares of items using a recirsive halfing approach
 func sum_squares(inputArray []int) int{
 	l:=len(inputArray)
 	if l==0{
 		return 0
 	} else if l==1{
-
-
 		return inputArray[0]*inputArray[0]
 	} else{
 		mid:=l/2
-		//		fmt.Println("length",l,"mid",mid)
 		left:=inputArray[:mid]
 		right:=inputArray[mid:]
 		return sum_squares(left)+sum_squares(right)
 	}
 
 }
+//implementation of concurrent calculation of elements of an array which in less than 100 items is not making a big difference, therefore not using here
 //func sum_squares_concurrent(inputArray []int,input_wg *sync.WaitGroup,input_channel chan int) {
 //	//	defer (*input_wg).Done()
 //	l:=len(inputArray)
@@ -93,6 +92,7 @@ func sum_squares(inputArray []int) int{
 //	}
 //
 //}
+//reads a line to the end as a  string
 func readLine(reader *bufio.Reader) string {
 	str, _, err := reader.ReadLine()
 	if err == io.EOF {
@@ -100,14 +100,15 @@ func readLine(reader *bufio.Reader) string {
 	}
 	return strings.TrimRight(string(str), "\r\n")
 }
+//the function to check the error
 func checkError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
+//main consumer to consume and calculate the sum of squares
 func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,counter int) {
 	if counter<=0{
-		//fmt.Println("recursion")
 		return
 	} else{
 		defer (*wg).Done()
@@ -115,8 +116,8 @@ func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,c
 	msg1 := <-*channel1
 	go consume(channel1,result_channel,wg,counter-1)
 	result_channel <- sum_squares(msg1)
-	//		fmt.Println(msg1)
 }
+//function to print the input channel items recursively
 func Print_channel(channel chan int){
 	fmt.Println(<- channel)
 	if len(channel)>0{
@@ -131,8 +132,9 @@ func main(){
 	wg:=sync.WaitGroup{}
 	wg.Add(arrays)
 	ch:=make(chan int,arrays)
-	Read_Array_Block(reader,arrays,channel )
+	//fire up the consumer before the actual reading
 	go consume(&channel,ch,&wg,arrays) 
+	Read_Array_Block(reader,arrays,channel )
 	wg.Wait()
 	close(channel)
 	close(ch)
