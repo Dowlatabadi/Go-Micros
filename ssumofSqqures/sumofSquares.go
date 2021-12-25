@@ -6,7 +6,6 @@ import(
 	"strings"
 	"io"
 	"sync"
-	"math/rand"
 	"time"
 	"os"
 )
@@ -17,14 +16,24 @@ func makeRange(min, max int) []int {
 	}
 	return a
 }
-func Read_Array_Block(reader *bufio.Reader,block_num int) []string{
+func Read_Array_Elements(reader *bufio.Reader,Elements int) []int{
+	if Elements==0{
+return []int{}
+}
+line_array:=Convert2intArray(strings.Split(strings.TrimSpace(readLine(reader)), " "))
+length:=len(line_array)
+return append(Read_Array_Elements(reader,Elements-length),line_array...)
+}
+func Read_Array_Block(reader *bufio.Reader,block_num int,channel chan []int) {
 	if (block_num==0) {
-		return []string{}
+		return 
 	}
-	_= readLine(reader)
-	firstMultipleInput := strings.Split(strings.TrimSpace(readLine(reader)), " ")
-	res:=Read_Array_Block(reader,block_num-1)
-	return append(firstMultipleInput,res...)
+	length,_:= strconv.Atoi(readLine(reader))
+	res:= Read_Array_Elements(reader,length)
+channel	<- res
+	fmt.Println("received : ",res)
+	Read_Array_Block(reader,block_num-1,channel)
+	
 }
 func Convert2intArray(stringArray []string) []int {
 	result:=[]int{}
@@ -34,7 +43,7 @@ func Convert2intArray(stringArray []string) []int {
 		element,err:=strconv.Atoi(stringArray[0] )
 		checkError(err)
 		tTemp := []int {element}
-		fmt.Println(tTemp)
+//		fmt.Println(tTemp)
 		second_part:=Convert2intArray(stringArray[1:])
 		return append(tTemp,second_part...)
 	}
@@ -109,65 +118,42 @@ func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,c
 	result_channel <- sum_squares(msg1)
 	//		fmt.Println(msg1)
 }
-func read_input(){
+func read_input(channel chan []int){
 	reader := bufio.NewReaderSize(os.Stdin, 16 * 1024 * 1024)
 
-	stdout, err := os.Create(os.Getenv("OUTPUT_PATH"))
-	checkError(err)
 
-	defer stdout.Close()
 
-	writer := bufio.NewWriterSize(stdout, 16 * 1024 * 1024)
 
 	length , _:= strconv.Atoi(readLine(reader))
 
 
-	Read_Array_Block(reader,length)
+	Read_Array_Block(reader,length,channel )
 
 
-	writer.Flush()
 }
 func main(){
-	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
-
 	arrays:=10000
+	channel:=make(chan []int,arrays)
+	read_input(channel)
 	//---------------------------sequential part
-	all:= [][]int{}
-	res:= []int{}
-	for i:=1;i<=arrays;i++{
-		rand_num:=r1.Intn(100)+10000
-		arr:=makeRange(rand_num,rand_num+10000)
-		all=append(all,arr)
-	}
-	Start:=time.Now()
-	for i:=0;i<arrays;i++{
-		res=append(res,sum_squares(all[i]))
-	}
-	fmt.Println("seq res ",time.Since(Start))
-
-
-
 
 	//concurrent --------------------------------------------------------
 	wg:=sync.WaitGroup{}
 	wg2:=sync.WaitGroup{}
 	wg.Add(arrays)
 	ch:=make(chan int,arrays)
-	ch_arrays:=make(chan []int,arrays)
 	wg2.Add(1)
 	go func(){
 		for i:=0;i<arrays;i++{
-			ch_arrays <-all[i] 
 		}
 		wg2.Done()
 	}()
 	wg2.Wait()
 	start:=time.Now()
-	go consume(&ch_arrays,ch,&wg,arrays) 
+	go consume(&channel,ch,&wg,arrays) 
 	wg.Wait()
 	fmt.Println("time og con ",time.Since(start))
-	close(ch_arrays)
+	close(channel)
 	close(ch)
 	fmt.Println("final results----------------------")
 	//	for sdfs:= range ch{
