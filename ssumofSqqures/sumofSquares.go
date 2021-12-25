@@ -6,7 +6,7 @@ import(
 	"strings"
 	"io"
 	"sync"
-//	"time"
+	//	"time"
 	"os"
 )
 func Read_Array_Elements(reader *bufio.Reader,Elements int) []int{
@@ -22,10 +22,11 @@ func Read_Array_Block(reader *bufio.Reader,block_num int,channel chan []int) {
 	if (block_num==0) {
 		return 
 	}
-	length,_:= strconv.Atoi(readLine(reader))
+	length,err:= strconv.Atoi(readLine(reader))
+	checkError(err)
 	res:= Read_Array_Elements(reader,length)
 	channel	<- res
-//	fmt.Println("received : ",res)
+	//	fmt.Println("received : ",res)
 	Read_Array_Block(reader,block_num-1,channel)
 
 }
@@ -39,7 +40,7 @@ func Convert2intArray(stringArray []string) []int {
 		tTemp:=[]int{}
 		if (element>0){
 
-		tTemp = []int {element}
+			tTemp = []int {element}
 		}
 		//		fmt.Println(tTemp)
 		second_part:=Convert2intArray(stringArray[1:])
@@ -63,35 +64,35 @@ func sum_squares(inputArray []int) int{
 	}
 
 }
-func sum_squares_concurrent(inputArray []int,input_wg *sync.WaitGroup,input_channel chan int) {
-	//	defer (*input_wg).Done()
-	l:=len(inputArray)
-	//	fmt.Println(l)
-	if l==0{
-		input_channel<- 0
-	} else if l<=1000{
-		temp:=sum_squares(inputArray)
-
-		input_channel <-temp
-		//	fmt.Println(inputArray[0],"array")
-	} else{
-		result:= make(chan int,2)
-		mid:=l/2
-		//		fmt.Println("length",l,"mid",mid)
-		left:=inputArray[:mid]
-		right:=inputArray[mid:]
-		wg :=sync.WaitGroup{}
-		wg.Add(2)
-		go sum_squares_concurrent(left,&wg,result)
-		go sum_squares_concurrent(right,&wg,result)
-		wg.Wait()
-		l_result:=<-result
-		r_result:=<-result
-		close(result)
-		input_channel<-l_result+r_result 
-	}
-
-}
+//func sum_squares_concurrent(inputArray []int,input_wg *sync.WaitGroup,input_channel chan int) {
+//	//	defer (*input_wg).Done()
+//	l:=len(inputArray)
+//	//	fmt.Println(l)
+//	if l==0{
+//		input_channel<- 0
+//	} else if l<=1000{
+//		temp:=sum_squares(inputArray)
+//
+//		input_channel <-temp
+//		//	fmt.Println(inputArray[0],"array")
+//	} else{
+//		result:= make(chan int,2)
+//		mid:=l/2
+//		//		fmt.Println("length",l,"mid",mid)
+//		left:=inputArray[:mid]
+//		right:=inputArray[mid:]
+//		wg :=sync.WaitGroup{}
+//		wg.Add(2)
+//		go sum_squares_concurrent(left,&wg,result)
+//		go sum_squares_concurrent(right,&wg,result)
+//		wg.Wait()
+//		l_result:=<-result
+//		r_result:=<-result
+//		close(result)
+//		input_channel<-l_result+r_result 
+//	}
+//
+//}
 func readLine(reader *bufio.Reader) string {
 	str, _, err := reader.ReadLine()
 	if err == io.EOF {
@@ -124,7 +125,8 @@ func Print_channel(channel chan int){
 }
 func main(){
 	reader := bufio.NewReaderSize(os.Stdin, 16 * 1024 * 1024)
-	arrays , _:= strconv.Atoi(readLine(reader))
+	arrays , err:= strconv.Atoi(readLine(reader))
+	checkError(err)
 	channel:=make(chan []int,arrays)
 	wg:=sync.WaitGroup{}
 	wg.Add(arrays)
