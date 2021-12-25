@@ -13,8 +13,9 @@ func Read_Array_Elements(reader *bufio.Reader,Elements int) []int{
 	if Elements==0{
 		return []int{}
 	}
-	line_array:=Convert2intArray(strings.Split(strings.TrimSpace(readLine(reader)), " "))
-	length:=len(line_array)
+	string_array:=strings.Split(strings.TrimSpace(readLine(reader))," ")
+	line_array:=Convert2intArray(string_array)
+	length:=len(string_array)
 	return append(Read_Array_Elements(reader,Elements-length),line_array...)
 }
 func Read_Array_Block(reader *bufio.Reader,block_num int,channel chan []int) {
@@ -35,7 +36,11 @@ func Convert2intArray(stringArray []string) []int {
 	} else{
 		element,err:=strconv.Atoi(stringArray[0] )
 		checkError(err)
-		tTemp := []int {element}
+		tTemp:=[]int{}
+		if (element>0){
+
+		tTemp = []int {element}
+		}
 		//		fmt.Println(tTemp)
 		second_part:=Convert2intArray(stringArray[1:])
 		return append(tTemp,second_part...)
