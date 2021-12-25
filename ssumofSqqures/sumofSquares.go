@@ -111,9 +111,6 @@ func consume( channel1 *chan []int,result_channel chan int, wg *sync.WaitGroup,c
 	result_channel <- sum_squares(msg1)
 	//		fmt.Println(msg1)
 }
-func read_input(channel chan []int,reader *bufio.Reader,length int){
-	Read_Array_Block(reader,length,channel )
-}
 func Print_channel(channel chan int){
 	fmt.Println(<- channel)
 	if len(channel)>0{
@@ -127,7 +124,7 @@ func main(){
 	wg:=sync.WaitGroup{}
 	wg.Add(arrays)
 	ch:=make(chan int,arrays)
-	read_input(channel,reader,arrays)
+	Read_Array_Block(reader,arrays,channel )
 	go consume(&channel,ch,&wg,arrays) 
 	wg.Wait()
 	close(channel)
